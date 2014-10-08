@@ -1,13 +1,22 @@
-from core import EventManager
 from core import Log
-#from modules.module_parent_language.parent_class import ModuleParentLanguage
+from core.decorator import threaded
 
-import re
+from circuits import Component, Event, task, Worker
 import subprocess
 import time
 
-class Module:#(ModuleParentLanguage):
-    def thread_check(self):
+
+class internet_up(Event):
+    """Internet up event"""
+
+
+class internet_down(Event):
+    """Internet down event"""
+
+
+class Module(Component):
+    @threaded
+    def started(self, component):
         while True:
             self.__check_down()
             self.__check_up()
@@ -20,9 +29,8 @@ class Module:#(ModuleParentLanguage):
             if not self.__has_connection():
                 up = False
 
-        Log.error('internet_down')
-        EventManager.trigger('internet_down')
-        #EventManager.trigger('notification', self.lang_get('internet_down'))
+        Log.info('internet_down')
+        self.fire(internet_down())
 
     def __has_connection(self, count=0):
         if count <= 2:
@@ -31,7 +39,7 @@ class Module:#(ModuleParentLanguage):
             host = 'treemo.fr'
 
         try:
-            result = subprocess.check_output(['ping','-c 1', host])
+            result = subprocess.check_output(['ping', '-c 1', host])
 #            time = re.search('time=(.*) ms', result)
 #
 #            if time and count <= 2:
@@ -59,6 +67,5 @@ class Module:#(ModuleParentLanguage):
             if self.__has_connection():
                 down = False
 
-        Log.error('internet_up')
-        EventManager.trigger('internet_up')
-        #EventManager.trigger('notification', self.lang_get('internet_down'))
+        Log.info('internet_up')
+        self.fire(internet_up())
