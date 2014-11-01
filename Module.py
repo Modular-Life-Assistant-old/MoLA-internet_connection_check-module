@@ -1,45 +1,63 @@
 from core import Log
-from core.decorator import threaded
 
-from circuits import Component, Event, task, Worker
+from circuits import Component, Event, handler, Timer
 import subprocess
 import time
 
 
 class internet_up(Event):
     """Internet up event"""
+    def __init__(self, timestamp): 
+        super(internet_up, self).__init__(timestamp)
 
 
-class internet_down(Event):
+class internet_down(internet_up):
     """Internet down event"""
 
 
 class Module(Component):
-    @threaded
+    channel = 'internet_connection'
+    __is_commected = True
+
     def started(self, component):
-        while True:
-            self.__check_down()
-            self.__check_up()
+        self.check_down()
 
-    def __check_down(self):
-        up = True
+    def check_down(self):
+        if not self.__check_connection():
+            Log.info('internet_down')
+            self.fire(internet_down(time.time()))
 
-        while up:
-            time.sleep(3)
-            if not self.__has_connection():
-                up = False
+        else:
+            Timer(3, Event.create('check_down')).register(self)
 
-        Log.info('internet_down')
-        self.fire(internet_down())
+    def check_up(self):
+        if self.__check_connection():
+            Log.info('internet_up')
+            self.fire(internet_up(time.time()))
 
-    def __has_connection(self, count=0):
+        else:
+            Timer(1, Event.create('check_up')).register(self)
+
+    def internet_down(self, timestamp):
+        self.check_up()
+
+    def internet_up(self, timestamp):
+        self.check_down()
+
+    def is_connected(self):
+        return self.__is_commected
+
+    def __check_connection(self, count=0):
         if count <= 2:
             host = '8.8.8.8'
         else:
             host = 'treemo.fr'
 
         try:
-            result = subprocess.check_output(['ping', '-c 1', host])
+            result = subprocess.check_output(
+                ['ping', '-c 1', host],
+                timeout=4
+             )
 #            time = re.search('time=(.*) ms', result)
 #
 #            if time and count <= 2:
@@ -53,19 +71,11 @@ class Module(Component):
 #                else:
 #                    self.__average_time = time
 
+            self.__is_commected = True
             return True
         except:
             if count <= 5:
-                return self.__has_connection(count+1)
+                return self.__check_connection(count+1)
+            self.__is_commected = False
             return False
 
-    def __check_up(self):
-        down = True
-
-        while down:
-            time.sleep(1)
-            if self.__has_connection():
-                down = False
-
-        Log.info('internet_up')
-        self.fire(internet_up())
