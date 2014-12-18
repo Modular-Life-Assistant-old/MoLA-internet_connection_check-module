@@ -55,8 +55,7 @@ class Module(Component):
 
         try:
             result = subprocess.check_output(
-                ['ping', '-c 1', host],
-                timeout=4
+                ['ping', '-c 1', host]
              )
 #            time = re.search('time=(.*) ms', result)
 #
