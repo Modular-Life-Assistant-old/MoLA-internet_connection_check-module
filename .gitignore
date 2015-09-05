@@ -4,7 +4,6 @@ __pycache__/
 
 # C extensions
 *.so
-
 # Distribution / packaging
 .Python
 env/
@@ -52,6 +51,14 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+# ide
+.idea
 
-#MoLA module
+# Other
+*.pid
+
+# pip
+src/
+
+# MoLA module
 disabled
