@@ -1,4 +1,3 @@
-from core import ModuleManager
 from helpers.modules.BaseModule import BaseModule
 
 import time
@@ -21,7 +20,7 @@ class Module(BaseModule):
             self._check_up()
 
     def started(self):
-        ModuleManager.call(
+        self.call(
             'cli', 'register_command', 'internet', self.command_internet_statut, 'Get internet state.',
             _optional_call=True
         )
