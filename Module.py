@@ -20,10 +20,9 @@ class Module(BaseModule):
             self._check_up()
 
     def started(self):
-        self.call(
-            'cli', 'register_command', 'internet', self.command_internet_statut, 'Get internet state.',
-            _optional_call=True
-        )
+        self.call('cli', 'register_command', 'internet',
+                  self.command_internet_statut, 'Get internet state.',
+                  _optional_call=True)
 
     def _check_down(self):
         while self.internet_is_up:
